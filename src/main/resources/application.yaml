@@ -1,3 +1,40 @@
+# App
 spring:
   application:
-    name: gstBilling
+    name: gst-billing
+
+  # H2 Dev DB
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  # Mail (Gmail SMTP — use App Password)
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Custom App Properties (JWT & Base URL)
+app:
+  base-url: ${APP_BASE_URL}
+  jwt:
+    secret: ${JWT_SECRET}
+    access-token-expiry: ${JWT_ACCESS_EXPIRY}
+    refresh-token-expiry: ${JWT_REFRESH_EXPIRY}
