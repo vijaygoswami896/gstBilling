@@ -1,15 +1,17 @@
-// controller/ProductController.java
 package com.vijay.gstBilling.controller;
 
 import com.vijay.gstBilling.dto.product.ProductRequest;
 import com.vijay.gstBilling.dto.product.ProductResponse;
 import com.vijay.gstBilling.service.ProductService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -28,8 +30,10 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAll() {
-        return ResponseEntity.ok(productService.getAll());
+    public ResponseEntity<Page<ProductResponse>> getAll(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(productService.getAll(search, pageable));
     }
 
     @GetMapping("/{id}")

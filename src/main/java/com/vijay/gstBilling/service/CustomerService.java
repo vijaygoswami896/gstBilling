@@ -9,11 +9,12 @@ import com.vijay.gstBilling.exception.UnauthorizedException;
 import com.vijay.gstBilling.repository.CustomerRepository;
 import com.vijay.gstBilling.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -33,28 +34,30 @@ public class CustomerService {
     public CustomerResponse create(CustomerRequest request) {
         User user = currentUser();
         Customer customer = Customer.builder()
-                .user(user)
-                .name(request.getName())
-                .email(request.getEmail())
-                .phone(request.getPhone())
-                .gstin(request.getGstin())
-                .address(request.getAddress())
-                .build();
+                .user(user).name(request.getName()).email(request.getEmail())
+                .phone(request.getPhone()).gstin(request.getGstin())
+                .address(request.getAddress()).build();
         Customer saved = customerRepository.save(customer);
         log.info("Customer created: {} by user: {}", saved.getId(), user.getEmail());
         return new CustomerResponse(saved);
     }
 
-    public List<CustomerResponse> getAll() {
+    public Page<CustomerResponse> getAll(String search, Pageable pageable) {
         UUID userId = currentUser().getId();
-        return customerRepository.findByUserId(userId)
-                .stream().map(CustomerResponse::new).toList();
+        log.info("Listing customers for user: {} search: '{}'", userId, search);
+        if (search != null && !search.isBlank()) {
+            return customerRepository
+                    .findByUserIdAndNameContainingIgnoreCase(userId, search.trim(), pageable)
+                    .map(CustomerResponse::new);
+        }
+        return customerRepository.findByUserId(userId, pageable).map(CustomerResponse::new);
     }
 
     public CustomerResponse getById(UUID id) {
         UUID userId = currentUser().getId();
         Customer customer = customerRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+        log.info("Fetched customer: {}", id);
         return new CustomerResponse(customer);
     }
 
@@ -63,13 +66,11 @@ public class CustomerService {
         UUID userId = currentUser().getId();
         Customer customer = customerRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
-
         customer.setName(request.getName());
         customer.setEmail(request.getEmail());
         customer.setPhone(request.getPhone());
         customer.setGstin(request.getGstin());
         customer.setAddress(request.getAddress());
-
         log.info("Customer updated: {}", id);
         return new CustomerResponse(customerRepository.save(customer));
     }
@@ -84,8 +85,7 @@ public class CustomerService {
     }
 
     private User currentUser() {
-        String email = SecurityContextHolder.getContext()
-                .getAuthentication().getName();
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
     }

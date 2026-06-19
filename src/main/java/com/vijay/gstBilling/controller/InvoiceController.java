@@ -1,15 +1,18 @@
-// controller/InvoiceController.java  (full replace)
+// controller/InvoiceController.java  (full replace — pageable + status filter)
 package com.vijay.gstBilling.controller;
 
 import com.vijay.gstBilling.dto.invoice.InvoiceRequest;
 import com.vijay.gstBilling.dto.invoice.InvoiceResponse;
 import com.vijay.gstBilling.service.InvoiceService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,8 +32,10 @@ public class InvoiceController {
     }
 
     @GetMapping
-    public ResponseEntity<List<InvoiceResponse>> getAll() {
-        return ResponseEntity.ok(invoiceService.getAll());
+    public ResponseEntity<Page<InvoiceResponse>> getAll(
+            @RequestParam(required = false) String status,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(invoiceService.getAll(status, pageable));
     }
 
     @GetMapping("/{id}")

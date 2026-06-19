@@ -10,6 +10,8 @@ import com.vijay.gstBilling.exception.ResourceNotFoundException;
 import com.vijay.gstBilling.exception.UnauthorizedException;
 import com.vijay.gstBilling.repository.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,10 +122,21 @@ public class InvoiceService {
         return new InvoiceResponse(saved);
     }
 
-    public List<InvoiceResponse> getAll() {
+//    public List<InvoiceResponse> getAll() {
+//        UUID userId = currentUser().getId();
+//        return invoiceRepository.findByUserId(userId)
+//                .stream().map(InvoiceResponse::new).toList();
+//    }
+
+    public Page<InvoiceResponse> getAll(String status, Pageable pageable) {
         UUID userId = currentUser().getId();
-        return invoiceRepository.findByUserId(userId)
-                .stream().map(InvoiceResponse::new).toList();
+        log.info("Listing invoices for user: {} status filter: '{}'", userId, status);
+        if (status != null && !status.isBlank()) {
+            return invoiceRepository
+                    .findByUserIdAndStatus(userId, status.toUpperCase(), pageable)
+                    .map(InvoiceResponse::new);
+        }
+        return invoiceRepository.findByUserId(userId, pageable).map(InvoiceResponse::new);
     }
 
     public InvoiceResponse getById(UUID id) {

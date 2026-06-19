@@ -269,19 +269,6 @@ Authorization: Bearer <access_token>
 
 ---
 
-## Switching to PostgreSQL
-
-Change only `application.properties`:
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/gstbilling
-spring.datasource.driver-class-name=org.postgresql.Driver
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.hibernate.ddl-auto=update
-```
-No code changes needed — PostgreSQL driver is already in `pom.xml`.
-
----
-
 ## Author
 
 **Vijay Goswami**  
