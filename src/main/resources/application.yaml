@@ -50,3 +50,18 @@ app:
     secret: ${JWT_SECRET}
     access-token-expiry: ${JWT_ACCESS_EXPIRY}
     refresh-token-expiry: ${JWT_REFRESH_EXPIRY}
+
+# ===================================================================
+# Springdoc OpenAPI / Swagger UI Configurations
+# ===================================================================
+springdoc:
+  api-docs:
+    # Customizes the endpoint path for the raw structural data layout
+    path: /v3/api-docs
+  swagger-ui:
+    # Customizes the shortcut path to hit the visual browser console
+    path: /swagger-ui.html
+    # Sorts operations alphabetically by HTTP method (GET, POST, etc.)
+    operations-sorter: alpha
+    # Enables a quick filter bar inside the UI to search your endpoints easily
+    filter: true
