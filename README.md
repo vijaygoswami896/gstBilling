@@ -1,4 +1,17 @@
-# GST Billing REST API
+---
+title: Gst Billing API
+emoji: ⚡
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
+# GST Billing Spring Boot API
+This application is automatically built and deployed via GitHub Actions.
+
+[//]: # (# GST Billing REST API)
 
 A production-ready GST Billing backend built with Spring Boot 3, demonstrating JWT authentication, role-based data ownership, and Indian GST tax calculation logic.
 
