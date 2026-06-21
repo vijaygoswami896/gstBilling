@@ -1,7 +1,12 @@
 package com.vijay.gstBilling.service;
 
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.resend.services.emails.model.CreateEmailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import com.resend.*;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -13,13 +18,10 @@ import jakarta.mail.internet.MimeMessage;
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final Resend resend;
 
-    @Value("${spring.mail.username}")
-    private String fromAddress;
-
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailService(@Value("${RESEND_API_KEY}") String apiKey)  {
+        this.resend = new Resend((apiKey));
     }
 
     public void sendVerificationEmail(String to, String name, String verifyLink) {
@@ -34,22 +36,34 @@ public class EmailService {
             </body></html>
             """.formatted(name, verifyLink);
 
-        sendHtml(to, subject, body);
+        // Execute the HTTP REST API call via Resend SDK
+        sendViaResend(to, subject, body);
+
+//        sendHtml(to, subject, body);
+
     }
 
-    private void sendHtml(String to, String subject, String htmlBody) {
+    private void sendViaResend(String to, String subject, String htmlBody) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromAddress);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            mailSender.send(message);
-            log.info("Email sent to: {}", to);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
-            // Don't rethrow — registration already succeeded; email failure is non-fatal
+            // NOTE: On Resend's free tier, you must use "onboarding@resend.dev"
+            // until you verify your own custom domain ownership.
+            CreateEmailOptions request = CreateEmailOptions.builder()
+                    .from("onboarding@resend.dev")
+                    .to(to)
+                    .subject(subject)
+                    .html(htmlBody)
+                    .build();
+
+            CreateEmailResponse response = resend.emails().send(request);
+            log.info("Email sent successfully via Resend to {}! Message ID: {}", to, response.getId());
+
+        } catch (ResendException e) {
+            log.error("Failed to send email to {} via Resend API: {}", to, e.getMessage());
+
+            // CRITICAL: We MUST rethrow this exception so that your RabbitMQ
+            // RetryInterceptor knows a failure happened, allowing it to retry 3 times
+            // and gracefully dead-letter the message to your DLQ if Resend is down!
+            throw new RuntimeException("Resend communication error", e);
         }
     }
 }

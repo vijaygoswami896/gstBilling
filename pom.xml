@@ -142,6 +142,13 @@
 			<groupId>org.springframework.retry</groupId>
 			<artifactId>spring-retry</artifactId>
 		</dependency>
+
+		<dependency>
+			<groupId>com.resend</groupId>
+			<artifactId>resend-java</artifactId>
+			<version>v4.14.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
