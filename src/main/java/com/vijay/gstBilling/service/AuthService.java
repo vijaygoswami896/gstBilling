@@ -1,8 +1,10 @@
 package com.vijay.gstBilling.service;
 
 import com.vijay.gstBilling.config.JwtConfig;
+import com.vijay.gstBilling.config.RabbitMQConfig;
 import com.vijay.gstBilling.dto.auth.LoginRequest;
 import com.vijay.gstBilling.dto.auth.RegisterRequest;
+import com.vijay.gstBilling.dto.email.EmailVerificationMessage;
 import com.vijay.gstBilling.entity.EmailVerification;
 import com.vijay.gstBilling.entity.RefreshToken;
 import com.vijay.gstBilling.entity.User;
@@ -12,6 +14,7 @@ import com.vijay.gstBilling.repository.EmailVerificationRepository;
 import com.vijay.gstBilling.repository.RefreshTokenRepository;
 import com.vijay.gstBilling.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,7 @@ public class AuthService {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final JwtConfig jwtConfig;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -49,7 +53,7 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        EmailService emailService,
                        JwtService jwtService,
-                       JwtConfig jwtConfig) {
+                       JwtConfig jwtConfig, RabbitTemplate rabbitTemplate) {
         this.userRepository = userRepository;
         this.emailVerificationRepository = emailVerificationRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -57,6 +61,7 @@ public class AuthService {
         this.emailService = emailService;
         this.jwtService = jwtService;
         this.jwtConfig = jwtConfig;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -82,7 +87,19 @@ public class AuthService {
         emailVerificationRepository.save(verification);
 
         String verifyLink = baseUrl + "/api/auth/verify-email?token=" + rawToken;
-        emailService.sendVerificationEmail(user.getEmail(), user.getName(), verifyLink);
+
+
+        // OLD (synchronous): emailService.sendVerificationEmail(user.getEmail(), user.getName(), verifyLink);
+        // NEW (async via RabbitMQ):
+        EmailVerificationMessage message = new EmailVerificationMessage(user.getEmail(),user.getName(),verifyLink);
+
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.EMAIL_EXCHANGE,
+                RabbitMQConfig.EMAIL_ROUTING_KEY,
+                message
+        );
+
+        log.info("Published email verification message for: {}", user.getEmail());
     }
 
     @Transactional

@@ -10,12 +10,15 @@ spring:
         max-page-size: 100
     # Added: Redis Caching Configuration
     redis:
-      host: ${SPRING_DATA_REDIS_HOST}
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
       port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      ssl:
+        enabled: ${SPRING_DATA_REDIS_SSL_ENABLED:false}
 
   # Added: RabbitMQ / CloudAMQP Configuration
-  rabbitmq:
-    addresses: ${SPRING_RABBITMQ_ADDRESSES}
+#  rabbitmq:
+#    addresses: ${SPRING_RABBITMQ_ADDRESSES}
 
   # Database Connection Configuration
   datasource:
@@ -42,6 +45,26 @@ spring:
           auth: true
           starttls:
             enable: true
+
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    virtual-host: ${SPRING_RABBITMQ_VIRTUAL_HOST:/}
+    ssl:
+      enabled: ${SPRING_RABBITMQ_SSL_ENABLED:false}
+    listener:
+      simple:
+        retry:
+          # Enable message processing retries
+          enabled: true
+          # Maximum number of times to try processing the message
+          max-attempts: 3
+          # Wait 1 second before the first retry
+          initial-interval: 1000ms
+          # Double the wait time on each retry (1s, then 2s, etc.)
+          multiplier: 2.0
 
 # Custom App Properties (JWT & Base URL)
 app:
