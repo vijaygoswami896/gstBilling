@@ -45,6 +45,7 @@ spring:
           auth: true
           starttls:
             enable: true
+            required: true
 
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST:localhost}

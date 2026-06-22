@@ -1,3 +1,4 @@
+// listener/EmailVerificationListener.java
 package com.vijay.gstBilling.listener;
 
 import com.vijay.gstBilling.config.RabbitMQConfig;
@@ -10,16 +11,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class EmailVerificationListener {
+
     private final EmailService emailService;
 
     public EmailVerificationListener(EmailService emailService) {
         this.emailService = emailService;
     }
 
-    @RabbitListener(
-            queues = RabbitMQConfig.EMAIL_QUEUE,
-            containerFactory = "rabbitListenerContainerFactory"
-    )
+    @RabbitListener(queues = RabbitMQConfig.EMAIL_QUEUE)
     public void handleEmailVerification(EmailVerificationMessage message) {
         log.info("Consumed email verification message for: {}", message.getTo());
 

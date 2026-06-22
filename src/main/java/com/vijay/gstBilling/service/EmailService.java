@@ -1,27 +1,25 @@
 package com.vijay.gstBilling.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
-import com.resend.services.emails.model.CreateEmailResponse;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import com.resend.*;
+import org.springframework.context.annotation.Bean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 
 @Slf4j
 @Service
 public class EmailService {
 
-    private final Resend resend;
+    private final JavaMailSender mailSender;
 
-    public EmailService(@Value("${RESEND_API_KEY}") String apiKey)  {
-        this.resend = new Resend((apiKey));
+    @Value("${spring.mail.username}")
+    private String fromAddress;
+
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
     }
 
     public void sendVerificationEmail(String to, String name, String verifyLink) {
@@ -36,60 +34,46 @@ public class EmailService {
 //            </body></html>
 //            """.formatted(name, verifyLink);
 
-        // Converted to plain-text layout to avoid HTML anchor tag spam flags
-//        String body = """
-//        Hi %s,
-//
-//        Thank you for registering. Please copy and paste the following web address into your browser's address bar to verify your email address:
-//
-//        %s
-//
-//        This link will expire in 24 hours.
-//        If you did not create an account, you can safely ignore this email.
-//        """.formatted(name, verifyLink);
+        String subject = "Welcome, " + name + "! Complete your registration setup";
 
-        // Change the subject to something friendly and casual (removes "Billing/GST" triggers)
-        String subject = "Welcome to the App, " + name + "! Confirm your sign up";
+        // Since it's going through Gmail SMTP, you can use standard clean HTML layouts without issues!
+        String htmlBody = """
+                <!DOCTYPE html>
+                <html>
+                <body style="font-family: Arial, sans-serif; color: #333333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #4A90E2;">Welcome aboard!</h2>
+                    <p>Hi %s,</p>
+                    <p>Thank you for signing up. Please click the button below to verify your email address and activate your account:</p>
+                    
+                    <p style="margin: 30px 0;">
+                        <a href="%s" style="background-color: #4A90E2; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Verify Email Address</a>
+                    </p>
+                    
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 40px;">
+                        If the button doesn't work, copy and paste this link into your browser:<br>
+                        <span style="color: #e83e8c;">%s</span>
+                    </p>
+                </body>
+                </html>
+                """.formatted(name, verifyLink,verifyLink);
 
-        // Completely rewrite the text body to look like a personal greeting rather than a machine-generated template
-        String body = """
-        Hi %s,
-
-        Welcome! To complete setting up your profile, please copy the verification web link below and open it directly in your web browser:
-
-        %s
-
-        Thank you!
-        """.formatted(name, verifyLink);
-
-        // Execute the HTTP REST API call via Resend SDK
-        sendViaResend(to, subject, body);
-
-//        sendHtml(to, subject, body);
-
+        sendHtml(to, subject, htmlBody);
     }
 
-    private void sendViaResend(String to, String subject, String htmlBody) {
+
+    private void sendHtml(String to, String subject, String htmlBody) {
         try {
-            // NOTE: On Resend's free tier, you must use "onboarding@resend.dev"
-            // until you verify your own custom domain ownership.
-            CreateEmailOptions request = CreateEmailOptions.builder()
-                    .from("reply@vijaygoswami896.publicvm.com")
-                    .to(to)
-                    .subject(subject)
-                    .html(htmlBody)
-                    .build();
-
-            CreateEmailResponse response = resend.emails().send(request);
-            log.info("Email sent successfully via Resend to {}! Message ID: {}", to, response.getId());
-
-        } catch (ResendException e) {
-            log.error("Failed to send email to {} via Resend API: {}", to, e.getMessage());
-
-            // CRITICAL: We MUST rethrow this exception so that your RabbitMQ
-            // RetryInterceptor knows a failure happened, allowing it to retry 3 times
-            // and gracefully dead-letter the message to your DLQ if Resend is down!
-            throw new RuntimeException("Resend communication error", e);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+            mailSender.send(message);
+            log.info("Email sent to: {}", to);
+        } catch (MessagingException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
+            // Don't rethrow — registration already succeeded; email failure is non-fatal
         }
     }
 }

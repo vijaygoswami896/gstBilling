@@ -33,7 +33,7 @@ public class AuthController {
     private final AuthService authService;
     private final EmailVerificationRepository emailVerificationRepository;
     private final UserRepository userRepository;
-    private final WebClient webClient;
+//    private final WebClient webClient;
 
     @Value("${app.jwt.refresh-token-expiry}")
     private int refreshTokenExpiry;
@@ -46,22 +46,22 @@ public class AuthController {
         this.authService = authService;
         this.emailVerificationRepository = emailVerificationRepository;
         this.userRepository = userRepository;
-        this.webClient = WebClient.builder()
-                .baseUrl("https://vijaygoswami896-gst-billing-api.hf.space")
-                .build();
+//        this.webClient = WebClient.builder()
+//                .baseUrl("https://vijaygoswami896-gst-billing-api.hf.space")
+//                .build();
     }
 
-    @GetMapping("/verify")
-    public Mono<ResponseEntity<String>> proxyVerification(@RequestParam("token") String token) {
-        return webClient.get()
-                .uri(uriBuilder -> uriBuilder
-                        .path("/api/auth/verify-email")
-                        .queryParam("token", token)
-                        .build())
-                .retrieve()
-                .toEntity(String.class)
-                .onErrorReturn(ResponseEntity.status(500).body("Error communicating with backend service."));
-    }
+//    @GetMapping("/verify")
+//    public Mono<ResponseEntity<String>> proxyVerification(@RequestParam("token") String token) {
+//        return webClient.get()
+//                .uri(uriBuilder -> uriBuilder
+//                        .path("/api/auth/verify-email")
+//                        .queryParam("token", token)
+//                        .build())
+//                .retrieve()
+//                .toEntity(String.class)
+//                .onErrorReturn(ResponseEntity.status(500).body("Error communicating with backend service."));
+//    }
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {

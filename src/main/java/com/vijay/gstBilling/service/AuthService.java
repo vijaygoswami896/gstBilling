@@ -53,7 +53,8 @@ public class AuthService {
                        PasswordEncoder passwordEncoder,
                        EmailService emailService,
                        JwtService jwtService,
-                       JwtConfig jwtConfig, RabbitTemplate rabbitTemplate) {
+                       JwtConfig jwtConfig,
+                       RabbitTemplate rabbitTemplate) {
         this.userRepository = userRepository;
         this.emailVerificationRepository = emailVerificationRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -86,10 +87,7 @@ public class AuthService {
                 .build();
         emailVerificationRepository.save(verification);
 
-//        String verifyLink = baseUrl + "/api/auth/verify-email?token=" + rawToken;
-
-        String verifyLink = "https://vijaygoswami896.publicvm.com/api/auth/verify?token=" + rawToken;
-
+        String verifyLink = baseUrl + "/api/auth/verify-email?token=" + rawToken;
 
         // OLD (synchronous): emailService.sendVerificationEmail(user.getEmail(), user.getName(), verifyLink);
         // NEW (async via RabbitMQ):
