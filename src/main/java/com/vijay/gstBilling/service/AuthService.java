@@ -36,7 +36,6 @@ public class AuthService {
     private final EmailVerificationRepository emailVerificationRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
     private final JwtService jwtService;
     private final JwtConfig jwtConfig;
     private final RabbitTemplate rabbitTemplate;
@@ -51,7 +50,6 @@ public class AuthService {
                        EmailVerificationRepository emailVerificationRepository,
                        RefreshTokenRepository refreshTokenRepository,
                        PasswordEncoder passwordEncoder,
-                       EmailService emailService,
                        JwtService jwtService,
                        JwtConfig jwtConfig,
                        RabbitTemplate rabbitTemplate) {
@@ -59,7 +57,6 @@ public class AuthService {
         this.emailVerificationRepository = emailVerificationRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
-        this.emailService = emailService;
         this.jwtService = jwtService;
         this.jwtConfig = jwtConfig;
         this.rabbitTemplate = rabbitTemplate;
@@ -89,7 +86,6 @@ public class AuthService {
 
         String verifyLink = baseUrl + "/api/auth/verify-email?token=" + rawToken;
 
-        // OLD (synchronous): emailService.sendVerificationEmail(user.getEmail(), user.getName(), verifyLink);
         // NEW (async via RabbitMQ):
         EmailVerificationMessage message = new EmailVerificationMessage(user.getEmail(),user.getName(),verifyLink);
 

@@ -14,4 +14,4 @@ USER appuser
 
 EXPOSE 7860
 
-ENTRYPOINT ["java", "-Xmx400m", "-Djava.net.preferIPv4Stack=true", "-Dserver.port=7860", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx1g", "-Djava.net.preferIPv4Stack=true", "-Dserver.port=7860", "-jar", "app.jar"]
