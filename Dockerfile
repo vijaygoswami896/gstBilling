@@ -22,4 +22,4 @@ RUN mkdir -p /home/user/.cache && chmod -R 777 /home/user
 ENV PORT=7860
 EXPOSE 7860
 
-ENTRYPOINT ["sh", "-c", "java -Xmx4g -Dserver.port=${PORT} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Xmx4g -Djava.net.preferIPv4Stack=true -Dserver.port=${PORT} -jar app.jar"]
