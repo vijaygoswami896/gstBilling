@@ -26,15 +26,27 @@ public class EmailService {
 
     public void sendVerificationEmail(String to, String name, String verifyLink) {
         String subject = "Verify your GST Billing account";
+//        String body = """
+//            <html><body>
+//            <p>Hi %s,</p>
+//            <p>Click the link below to verify your email address:</p>
+//            <p><a href="%s">Verify Email</a></p>
+//            <p>This link expires in 24 hours.</p>
+//            <p>If you did not register, ignore this email.</p>
+//            </body></html>
+//            """.formatted(name, verifyLink);
+
+        // Converted to plain-text layout to avoid HTML anchor tag spam flags
         String body = """
-            <html><body>
-            <p>Hi %s,</p>
-            <p>Click the link below to verify your email address:</p>
-            <p><a href="%s">Verify Email</a></p>
-            <p>This link expires in 24 hours.</p>
-            <p>If you did not register, ignore this email.</p>
-            </body></html>
-            """.formatted(name, verifyLink);
+        Hi %s,
+
+        Thank you for registering. Please copy and paste the following web address into your browser's address bar to verify your email address:
+
+        %s
+
+        This link will expire in 24 hours.
+        If you did not create an account, you can safely ignore this email.
+        """.formatted(name, verifyLink);
 
         // Execute the HTTP REST API call via Resend SDK
         sendViaResend(to, subject, body);
