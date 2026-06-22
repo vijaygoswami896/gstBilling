@@ -48,7 +48,7 @@ public class EmailService {
             // NOTE: On Resend's free tier, you must use "onboarding@resend.dev"
             // until you verify your own custom domain ownership.
             CreateEmailOptions request = CreateEmailOptions.builder()
-                    .from("no-reply@vijaygoswami896.publicvm.com")
+                    .from("reply@vijaygoswami896.publicvm.com")
                     .to(to)
                     .subject(subject)
                     .html(htmlBody)

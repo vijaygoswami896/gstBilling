@@ -86,7 +86,9 @@ public class AuthService {
                 .build();
         emailVerificationRepository.save(verification);
 
-        String verifyLink = baseUrl + "/api/auth/verify-email?token=" + rawToken;
+//        String verifyLink = baseUrl + "/api/auth/verify-email?token=" + rawToken;
+
+        String verifyLink = "https://vijaygoswami896.publicvm.com/api/auth/verify?token=" + rawToken;
 
 
         // OLD (synchronous): emailService.sendVerificationEmail(user.getEmail(), user.getName(), verifyLink);

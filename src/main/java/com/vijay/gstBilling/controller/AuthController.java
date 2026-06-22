@@ -14,10 +14,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -30,6 +33,7 @@ public class AuthController {
     private final AuthService authService;
     private final EmailVerificationRepository emailVerificationRepository;
     private final UserRepository userRepository;
+    private final WebClient webClient;
 
     @Value("${app.jwt.refresh-token-expiry}")
     private int refreshTokenExpiry;
@@ -42,6 +46,21 @@ public class AuthController {
         this.authService = authService;
         this.emailVerificationRepository = emailVerificationRepository;
         this.userRepository = userRepository;
+        this.webClient = WebClient.builder()
+                .baseUrl("https://vijaygoswami896-gst-billing-api.hf.space")
+                .build();
+    }
+
+    @GetMapping("/verify")
+    public Mono<ResponseEntity<String>> proxyVerification(@RequestParam("token") String token) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/auth/verify-email")
+                        .queryParam("token", token)
+                        .build())
+                .retrieve()
+                .toEntity(String.class)
+                .onErrorReturn(ResponseEntity.status(500).body("Error communicating with backend service."));
     }
 
     @PostMapping("/register")
