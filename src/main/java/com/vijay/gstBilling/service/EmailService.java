@@ -25,7 +25,7 @@ public class EmailService {
     }
 
     public void sendVerificationEmail(String to, String name, String verifyLink) {
-        String subject = "Verify your GST Billing account";
+//        String subject = "Verify your GST Billing account";
 //        String body = """
 //            <html><body>
 //            <p>Hi %s,</p>
@@ -37,15 +37,29 @@ public class EmailService {
 //            """.formatted(name, verifyLink);
 
         // Converted to plain-text layout to avoid HTML anchor tag spam flags
+//        String body = """
+//        Hi %s,
+//
+//        Thank you for registering. Please copy and paste the following web address into your browser's address bar to verify your email address:
+//
+//        %s
+//
+//        This link will expire in 24 hours.
+//        If you did not create an account, you can safely ignore this email.
+//        """.formatted(name, verifyLink);
+
+        // Change the subject to something friendly and casual (removes "Billing/GST" triggers)
+        String subject = "Welcome to the App, " + name + "! Confirm your sign up";
+
+        // Completely rewrite the text body to look like a personal greeting rather than a machine-generated template
         String body = """
         Hi %s,
 
-        Thank you for registering. Please copy and paste the following web address into your browser's address bar to verify your email address:
+        Welcome! To complete setting up your profile, please copy the verification web link below and open it directly in your web browser:
 
         %s
 
-        This link will expire in 24 hours.
-        If you did not create an account, you can safely ignore this email.
+        Thank you!
         """.formatted(name, verifyLink);
 
         // Execute the HTTP REST API call via Resend SDK
